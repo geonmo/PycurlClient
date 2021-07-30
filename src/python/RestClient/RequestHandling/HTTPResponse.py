@@ -8,7 +8,7 @@ class HTTPResponse(object):
 
     def __parse_header(self):
         self._header_dict = {}
-        for header in self._response_header.getvalue().split('\r\n'):
+        for header in self._response_header.getvalue().decode().split('\r\n'):
             if header.startswith('HTTP'):
                 #self._version, self._code, self._msg = header.split(' ', 2)
                 initial_header = header.split(' ', 2)
@@ -20,7 +20,7 @@ class HTTPResponse(object):
     @property
     def body(self):
         """Returns raw body received from server"""
-        return self._response_body.getvalue()
+        return self._response_body.getvalue().decode()
 
     @property
     def fp_body(self):
@@ -32,7 +32,7 @@ class HTTPResponse(object):
     @property
     def raw_header(self):
         """Returns raw response header received from server"""
-        return self._response_header.getvalue()
+        return self._response_header.getvalue().decode()
     
     @property
     def header(self):
