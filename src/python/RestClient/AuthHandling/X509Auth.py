@@ -88,7 +88,8 @@ class X509Auth(object):
         curl_object.setopt(curl_object.SSLCERT, self._ssl_cert)
         curl_object.setopt(curl_object.SSLKEY, self._ssl_key)
         if self._ca_info:
-            curl_object.setopt(curl_object.CAINFO, self._ca_info)
+            pass
+            #curl_object.setopt(curl_object.CAINFO, self._ca_info)
 
         if self.ssl_key_pass:
             curl_object.setopt(curl_object.SSLKEYPASSWD, self.ssl_key_pass)
