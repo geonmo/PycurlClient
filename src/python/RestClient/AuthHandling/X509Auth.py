@@ -84,11 +84,13 @@ class X509Auth(object):
 
     def configure_auth(self, curl_object):
         curl_object.setopt(curl_object.SSL_VERIFYPEER, self._ssl_verifypeer)
+        #not sure if CAPATH shoud be set. YG 2021-Oct-11
         curl_object.setopt(curl_object.CAPATH, self._ca_path)
         curl_object.setopt(curl_object.SSLCERT, self._ssl_cert)
         curl_object.setopt(curl_object.SSLKEY, self._ssl_key)
         if self._ca_info:
             pass
+            # comment out as suggested. YG 2021-Oct-11
             #curl_object.setopt(curl_object.CAINFO, self._ca_info)
 
         if self.ssl_key_pass:

@@ -1,6 +1,7 @@
 from RestClient.RequestHandling.HTTPResponse import HTTPResponse
 from RestClient.ErrorHandling.RestClientExceptions import HTTPError
 
+import certifi
 import pycurl
 import urllib.request, urllib.parse, urllib.error
 
