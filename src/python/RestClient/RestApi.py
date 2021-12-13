@@ -23,6 +23,8 @@ class RestApi(object):
             auth.configure_auth(self._curl)
         if proxy:
             proxy.configure_proxy(self._curl)
+        # follow redirect link
+        self._curl.setopt(pycurl.FOLLOWLOCATION, True)
 
     def __del__(self):
         self._curl.close()
