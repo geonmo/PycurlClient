@@ -10,9 +10,21 @@ class ClientAuthException(Exception):
         return repr(self._msg)
 
 class HTTPError(Exception):
-    def __init__(self, url, code, msg, header, body):
+    def __init__(self, url, code, msg, header, body, server_code=0):
+        """
+        HTTPError class represents generic HTTPError used by DBS and WMcore
+        :param url: url of the client HTTP request
+        :param code: HTTP code
+        :param msg: message associated with error
+        :param header: HTTP response header
+        :param body: HTTP response body
+        :param server_code: HTTP back-end server code, e.g. HTTP server may response with
+        400 Bad request, but actual HTTP server (DBS) code may be something different
+        to indicate actual problem. This parameter is made optional for backward compatibility.
+        """
         self.url = url
         self.code = code
+        self.server_code = server_code
         self.msg = msg
         self.header = header
         self.body = body
