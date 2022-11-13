@@ -28,10 +28,10 @@ class HTTPError(Exception):
         self.msg = msg
         self.header = header
         self.body = body
-        super(HTTPError, self).__init__(self, "HTTPError %d" % self.code)
+        super(HTTPError, self).__init__(self, "HTTPError %d (server code %s)" % (self.code, self.server_code))
 
     def __repr__(self):
-        return ('%s %r' % (self.__class__.__name__, self.code))
+        return ('%s %r, server code %s' % (self.__class__.__name__, self.code, self.server_code))
 
     def __str__(self):
-        return ('HTTP Error %d: %s' % (self.code, self.msg))
+        return ('HTTP Error %d: %s, server code %s' % (self.code, self.msg, self.server_code))
