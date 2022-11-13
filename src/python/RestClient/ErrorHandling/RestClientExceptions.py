@@ -34,4 +34,4 @@ class HTTPError(Exception):
         return ('%s %r, server code %s' % (self.__class__.__name__, self.code, self.server_code))
 
     def __str__(self):
-        return ('HTTP Error %d: %s, server code %s' % (self.code, self.msg, self.server_code))
+        return ('HTTP Error %d: %s' % (self.code, self.msg))
