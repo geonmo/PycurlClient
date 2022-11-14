@@ -5,7 +5,7 @@ import sys
 from setuptools import setup
 
 # version of pycurl-client, should match current DBS release tag
-package_version = "3.17.8"
+package_version = "3.17.9"
 
 # Requirements file for pip dependencies
 requirements = "requirements.txt"
