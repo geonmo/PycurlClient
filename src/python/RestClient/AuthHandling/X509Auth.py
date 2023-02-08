@@ -1,7 +1,7 @@
 from getpass import getpass
 from RestClient.ErrorHandling.RestClientExceptions import ClientAuthException
 
-import os, sys
+import os, sys, glob
 
 class X509Auth(object):
     def __init__(self, ca_path=None, ssl_cert=None, ssl_key=None, ssl_verifypeer=True, ca_info=None):
@@ -10,11 +10,13 @@ class X509Auth(object):
         self._ssl_key = ssl_key
         self._ssl_verifypeer = ssl_verifypeer
         self._ca_info = ca_info
-        if not (self._ssl_cert and self._ssl_key):
-            self.__search_cert_key()
+        self._ssl_proxy_ca = False
 
         if not self._ca_path:
             self.__search_ca_path()
+
+        if not (self._ssl_cert and self._ssl_key):
+            self.__search_cert_key()
 
         #Check if ssl_cert, ssl_key and ca_path do exist
         if not (os.path.isfile(self._ssl_key) and os.path.isfile(self._ssl_cert)):
@@ -51,6 +53,7 @@ class X509Auth(object):
         elif 'X509_USER_PROXY' in os.environ and os.path.exists(os.environ['X509_USER_PROXY']):
             self._ssl_cert = os.environ['X509_USER_PROXY']
             self._ssl_key = self._ssl_cert
+            self._ssl_proxy_ca = True
 
         # Third preference to User Cert/Proxy combinition
         elif 'X509_USER_CERT' in os.environ and 'X509_USER_KEY' in os.environ:
@@ -62,6 +65,7 @@ class X509Auth(object):
         elif os.path.exists('/tmp/x509up_u%s' % str(os.getuid())):
             self._ssl_cert = '/tmp/x509up_u%s' % str(os.getuid())
             self._ssl_key = self._ssl_cert
+            self._ssl_proxy_ca = True
 
         elif sys.stdin.isatty():
             home_dir = os.environ['HOME']
@@ -82,16 +86,30 @@ class X509Auth(object):
         else:
             raise ClientAuthException("No valid X509 cert-key-pair found.")
 
+    def __create_ca_bundle(self):
+        trust_ca_files = glob.glob(f"{self._ca_path}/*.pem")
+        trust_ca_files.append(self._ssl_cert)
+        ca_bundle = f"/tmp/trust_ca_{os.getuid()}.crt"
+
+        with open(ca_bundle,"wb") as bundles:
+            for trust_ca in trust_ca_files:
+                with open(trust_ca,'rb') as f:
+                    bundles.write(f.read())
+
+        return ca_bundle
+
     def configure_auth(self, curl_object):
         curl_object.setopt(curl_object.SSL_VERIFYPEER, self._ssl_verifypeer)
         #not sure if CAPATH shoud be set. YG 2021-Oct-11
         curl_object.setopt(curl_object.CAPATH, self._ca_path)
         curl_object.setopt(curl_object.SSLCERT, self._ssl_cert)
         curl_object.setopt(curl_object.SSLKEY, self._ssl_key)
+
+        if self._ssl_proxy_ca:
+            self._ca_info = self.__create_ca_bundle()
+
         if self._ca_info:
-            pass
-            # comment out as suggested. YG 2021-Oct-11
-            #curl_object.setopt(curl_object.CAINFO, self._ca_info)
+            curl_object.setopt(curl_object.CAINFO, self._ca_info)
 
         if self.ssl_key_pass:
             curl_object.setopt(curl_object.SSLKEYPASSWD, self.ssl_key_pass)
