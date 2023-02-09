@@ -1,9 +1,11 @@
 from getpass import getpass
 from RestClient.ErrorHandling.RestClientExceptions import ClientAuthException
+from tempfile import NamedTemporaryFile
 
 import os, sys, glob
 
 class X509Auth(object):
+    bundles = None
     def __init__(self, ca_path=None, ssl_cert=None, ssl_key=None, ssl_verifypeer=True, ca_info=None):
         self._ca_path = ca_path
         self._ssl_cert = ssl_cert
@@ -89,14 +91,12 @@ class X509Auth(object):
     def __create_ca_bundle(self):
         trust_ca_files = glob.glob(f"{self._ca_path}/*.pem")
         trust_ca_files.append(self._ssl_cert)
-        ca_bundle = f"/tmp/trust_ca_{os.getuid()}.crt"
 
-        with open(ca_bundle,"wb") as bundles:
-            for trust_ca in trust_ca_files:
-                with open(trust_ca,'rb') as f:
-                    bundles.write(f.read())
-
-        return ca_bundle
+        X509Auth.bundles = NamedTemporaryFile()
+        for trust_ca in trust_ca_files:
+            with open(trust_ca,'rb') as f:
+                X509Auth.bundles.write(f.read())
+        return X509Auth.bundles.name
 
     def configure_auth(self, curl_object):
         curl_object.setopt(curl_object.SSL_VERIFYPEER, self._ssl_verifypeer)
@@ -105,7 +105,7 @@ class X509Auth(object):
         curl_object.setopt(curl_object.SSLCERT, self._ssl_cert)
         curl_object.setopt(curl_object.SSLKEY, self._ssl_key)
 
-        if self._ssl_proxy_ca:
+        if self._ssl_proxy_ca and self._ca_info is None:
             self._ca_info = self.__create_ca_bundle()
 
         if self._ca_info:
